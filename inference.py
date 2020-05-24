@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
  Copyright (c) 2018 Intel Corporation.
+
  Permission is hereby granted, free of charge, to any person obtaining
  a copy of this software and associated documentation files (the
  "Software"), to deal in the Software without restriction, including
@@ -8,8 +9,10 @@
  distribute, sublicense, and/or sell copies of the Software, and to
  permit persons to whom the Software is furnished to do so, subject to
  the following conditions:
+
  The above copyright notice and this permission notice shall be
  included in all copies or substantial portions of the Software.
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,7 +28,6 @@ import logging as log
 from openvino.inference_engine import IENetwork, IECore
 
 
-
 class Network:
     """
     Load and configure inference plugins for the specified target devices 
@@ -34,65 +36,66 @@ class Network:
 
     def __init__(self):
         ### TODO: Initialize any class variables desired ###
-        self.plugin = None
         self.network = None
-        self.input_blob = None
+        self.plugin = None
         self.output_blob = None
-        self.exec_network = None
+        self.input_blob = None
         self.infer_request = None
+        self.exec_network = None
 
-    
-    def load_model(self, model, CPU_EXTENSION, DEVICE, console_output= False):
+    def load_model(self, model,device="CPU", cpu_extension=None):
         ### TODO: Load the model ###
         model_xml = model
         model_bin = os.path.splitext(model_xml)[0] + ".bin"
-        
+       
+        # Initialize the plugin //Creating Inference Engine
         self.plugin = IECore()
+        # Read the IR as a IENetwork
         self.network = IENetwork(model=model_xml, weights=model_bin)
-        ### TODO: Check for supported layers ###    
-        supported_layers = self.plugin.query_network(network=self.network, device_name='CPU')
+        
+        ### TODO: Add any necessary extensions ###
+        if cpu_extension and "CPU" in device:
+            self.plugin.add_extension(cpu_extension, device)
+        
+        ### TODO: Check for supported layers ###
+        # Get the supported layers of the network
+        supported_layers = self.plugin.query_network(network=self.network, device_name=device)
+
+        # Check for any unsupported layers, and let the user know if anything is missing. Exit           the program, if so.
         unsupported_layers = [l for l in self.network.layers.keys() if l not in supported_layers]
         if len(unsupported_layers) != 0:
-            self.plugin.add_extension(CPU_EXTENSION, DEVICE)
-                
-        # Load the network to IR and return    
-        self.exec_network = self.plugin.load_network(self.network, DEVICE)
+            sys.exit(1)
         
+        ### TODO: Return the loaded inference plugin ###
+        self.exec_network = self.plugin.load_network(self.network, device)
         # Get the input layer
         self.input_blob = next(iter(self.network.inputs))
         self.output_blob = next(iter(self.network.outputs))
-       
-        ### TODO: Return the loaded inference plugin ###
         ### Note: You may need to update the function parameters. ###
-        return self.exec_network
+        return
 
     def get_input_shape(self):
         ### TODO: Return the shape of the input layer ###
-        input_shapes = {}
-        for inp in self.network.inputs:
-            input_shapes[inp] = (self.network.inputs[inp].shape)
-        return input_shapes
-    
+        return self.network.inputs[self.input_blob].shape
 
-    def exec_net(self, net_input, request_id):
+    def exec_net(self, request_id, image):
         ### TODO: Start an asynchronous request ###
         ### TODO: Return any necessary information ###
-        self.infer_request_handle = self.exec_network.start_async(
-                request_id, 
-                inputs=net_input)
+        ### Note: You may need to update the function parameters. ###
+        
+        self.exec_network.requests[request_id].async_infer({self.input_blob: image})
+        
+        return self.exec_network
 
-        return self.infer_request_handle 
-
-
-    def wait(self):
+    def wait(self, request_id):
         ### TODO: Wait for the request to be complete. ###
         ### TODO: Return any necessary information ###
         ### Note: You may need to update the function parameters. ###
-        status = self.infer_request_handle.wait(-1)
-        return status
-    
+        
+        return self.exec_network.requests[request_id].wait(-1)
+     
 
     def get_output(self):
         ### TODO: Extract and return the output results
         ### Note: You may need to update the function parameters. ###
-        return self.infer_request_handle.outputs[self.output_blob]
+        return self.exec_network.requests[0].outputs[self.output_blob]
