@@ -152,4 +152,10 @@ Then run the command below:
 python main.py -i resources/Pedestrian_Detect_2_1_1.mp4 -m ssdlite_mobilenet_v2_coco_2018_05_09/frozen_inference_graph.xml -l /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so -d CPU -pt 0.4 | ffmpeg -v warning -f rawvideo -pixel_format bgr24 -video_size 768x432 -framerate 24 -i - http://0.0.0.0:3004/fac.ffm
 ```
 ## Screenshots
+![people-counter-python](./images/people-counter-image-1.png)
 
+![people-counter-python](./images/people-counter-image-2.png)
+
+![people-counter-python](./images/people-counter-image-3.png)
+
+![people-counter-python](./images/people-counter-image-4.png)
