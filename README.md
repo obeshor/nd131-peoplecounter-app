@@ -87,7 +87,7 @@ From the main directory:
 
 ## Model Selection
 
-We need to find a model not already converted to Intermediate Representation format (i.e. not one of the Intel® Pre-Trained Models), convert it, and utilize the converted model in your application. we use here `ssdlite_mobilenet_v2_coco_2018_05_09` and `faster_rcnn_inception_v2_coco_2018_01_28`.For comparing the models check [WRITEUP](./WRITEUP.md)
+We need to find a model not already converted to Intermediate Representation format (i.e. not one of the Intel® Pre-Trained Models), convert it, and utilize the converted model in your application. we use here `ssdlite_mobilenet_v2`,  `ssd_mobilenet_v2` , `ssd_inception_v2 ` and `person-detection-retail-0013`.For comparing the models check [WRITEUP](./WRITEUP.md)
 
   *  Download the model:
 ```
